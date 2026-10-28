@@ -1,4 +1,10 @@
-export function EntityCard() {
+import type { IMovie } from "../types";
+
+interface IMovieCard extends IMovie {
+
+}
+
+export function MovieCard({ title, description, rating, genre } : IMovieCard) {
     return (
         <article className="card">
             <div className="card__cover">
