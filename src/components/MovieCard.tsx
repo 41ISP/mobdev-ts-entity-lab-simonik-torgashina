@@ -1,10 +1,18 @@
 import type { IMovie } from "../types";
+import { useMovieStore } from "../store/useMovieStore";
+import { api } from "../api";
 
 interface IMovieCard extends IMovie {
 
 }
 
-export function MovieCard({ title, description, rating, genre } : IMovieCard) {
+export function MovieCard({ } : IMovieCard) {
+    const {getMovie} = useMovieStore()
+    const handleDelete = async() => {
+        await api.deleteMovie(documentId)
+        getMovie()
+    }
+    
     return (
         <article className="card">
             <div className="card__cover">
@@ -27,7 +35,7 @@ export function MovieCard({ title, description, rating, genre } : IMovieCard) {
 
             <footer className="card__footer">
                 <strong>100 Р</strong>
-                <button className="link-btn">Удалить</button>
+                <button onClick={handleDelete} className="link-btn">Удалить</button>
             </footer>
         </article>
     )
