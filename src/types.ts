@@ -23,7 +23,7 @@ export interface IMovie {
   duration: number
   rating: number
   releaseDate: string
-  genre: string
+  genre: Genre
   isWatched: boolean
   createdAt: string
   updatedAt: string
@@ -88,5 +88,5 @@ export interface IPagination {
 
 export type IMovieInput = Omit<
     IMovie,
-    "id" | "documentId" | "createdAt" | "updatedAt" | "publishedAt" | "image"
+    "id" | "documentId" | "createdAt" | "updatedAt" | "publishedAt" | "picture"
 >

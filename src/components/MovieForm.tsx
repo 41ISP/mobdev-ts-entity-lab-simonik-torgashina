@@ -1,63 +1,153 @@
-export function EntityForm() {
+import axios from "axios"
+import { useState, type FormEvent } from "react"
+import { useMovieStore } from "../store/useMovieStore"
+import { GENRES, GENRES_LABELS } from "../types"
+import type { Genre, IMovieInput } from "../types"
+
+const initialForm: IMovieInput = {
+    title: "",
+    description: "",
+    duration: 0,
+    rating: 7,
+    genre: GENRES[0],
+    releaseDate: new Date().toLocaleDateString("sv-SE"),
+    isWatched: false,
+}
+
+export function MovieForm() {
+    const createMovie = useMovieStore((s) => s.createMovie)
+    const [form, setForm] = useState<IMovieInput>(initialForm)
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+
+    const onChange = <K extends keyof IMovieInput>(
+        key: K,
+        value: IMovieInput[K],
+    ) => {
+        setForm((o) => ({ ...o, [key]: value }))
+    }
+
+    const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        const formEl = e.currentTarget
+
+        if (!Number.isInteger(form.duration)) {
+            setError("Длительность должна быть целым числом")
+            return
+        }
+
+        setIsLoading(true)
+        setError(null)
+        try {
+            await createMovie(form)
+            formEl.reset()
+            setForm(initialForm)
+        } catch (err) {
+            if (axios.isAxiosError(err)) {
+                setError(err.response?.data?.error?.message ?? err.message)
+            } else {
+                setError("Неизвестная ошибка")
+            }
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
     return (
-        <form className="form">
-            <h2>Добавить сущность</h2>
+        <form className="form" onSubmit={onSubmit}>
+            <h2>Добавить фильм</h2>
 
             <label className="field">
-                Строка
-                <input type="text" required />
+                Название
+                <input
+                    type="text"
+                    name="title"
+                    required
+                    value={form.title}
+                    onChange={(e) => onChange("title", e.target.value)}
+                />
             </label>
 
             <label className="field">
-                Длинный текст
-                <textarea rows={3} />
+                Описание
+                <textarea
+                    rows={3}
+                    name="description"
+                    required
+                    value={form.description}
+                    onChange={(e) => onChange("description", e.target.value)}
+                />
             </label>
 
-            <label className="field">
-                Целое число
-                <input type="number" min={0} step={1} />
-            </label>
-
-            <label className="field">
-                Число с плавающией точкой
-                <input type="number" min={0} step={0.01} />
-            </label>
-
-            <label className="field">
-                <span>Диапазон</span>
-                <input type="range" min={0} max={10} step={0.5} />
-            </label>
-
-            <label className="field">
-                Дата
-                <input type="date" required />
-            </label>
-
-            <label className="field">
-                Выпадающий список
-                <select>
-                    <option>Вариант 1</option>
-                </select>
-            </label>
-
-            <fieldset>
-                <legend>Группа чекбоксов</legend>
-                <label className="check">
-                    <input type="checkbox" />
-                    Чекбокс 1
+            <div className="row">
+                <label className="field">
+                    Жанр
+                    <select
+                        name="genre"
+                        value={form.genre}
+                        onChange={(e) => onChange("genre", e.target.value as Genre)}
+                    >
+                        {GENRES.map((g) => (
+                            <option key={g} value={g}>
+                                {GENRES_LABELS[g]}
+                            </option>
+                        ))}
+                    </select>
                 </label>
-                <label className="check">
-                    <input type="checkbox" />
-                    Чекбокс 2
+                <label className="field">
+                    Дата выхода
+                    <input
+                        type="date"
+                        name="releaseDate"
+                        required
+                        value={form.releaseDate}
+                        onChange={(e) => onChange("releaseDate", e.target.value)}
+                    />
                 </label>
-            </fieldset>
+            </div>
+
+            <div className="row">
+                <label className="field">
+                    <span>Оценка: {form.rating}</span>
+                    <input
+                        type="range"
+                        name="rating"
+                        min={0}
+                        max={10}
+                        step={0.5}
+                        value={form.rating}
+                        onChange={(e) => onChange("rating", Number(e.target.value))}
+                    />
+                </label>
+                <label className="field">
+                    Длительность, мин
+                    <input
+                        type="number"
+                        name="duration"
+                        min={0}
+                        step={1}
+                        required
+                        value={form.duration}
+                        onChange={(e) => onChange("duration", Number(e.target.value))}
+                    />
+                </label>
+            </div>
 
             <label className="check">
-                <input type="checkbox" />
-                Чекбокс
+                <input
+                    type="checkbox"
+                    name="isWatched"
+                    checked={form.isWatched}
+                    onChange={(e) => onChange("isWatched", e.target.checked)}
+                />
+                Просмотрено
             </label>
 
-            <button className="btn">Добавить</button>
+            {error && <p className="error">{error}</p>}
+
+            <button type="submit" className="btn" disabled={isLoading}>
+                {isLoading ? "Сохраняем…" : "Добавить фильм"}
+            </button>
         </form>
     )
 }
